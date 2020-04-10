@@ -2,7 +2,7 @@
 
 variables:
   ARCHIVE_DIR: build
-  WAR_NAME: ${APP_NAME}.war
+  WAR_NAME: ${APP_NAME}.car
   SRC_DIR: "src"
   TARGET_DIR: ${CI_PROJECT_DIR}/${SRC_DIR}/target
   MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
