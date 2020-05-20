@@ -1,0 +1,13 @@
+---
+- hosts: all
+  become: false
+  serial: 1
+  tasks:
+    - name: Copy project CAR
+      copy:
+        src:   "{{ target_dir }}/{{ car_file }}"
+        dest:  /var/tmp/{{ car_file }}
+        
+    - name: Move new CAR file to project directory
+      shell: sudo /usr/local/sbin/wso2ei-app-deploy -f /var/tmp/{{ car_file }}
+
