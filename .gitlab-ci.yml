@@ -30,7 +30,7 @@ build:
   script:
     - cd ${SRC_DIR}
     - mvn $MAVEN_CLI_OPTS clean install -Dspring.profiles.active=${ENV}
-    - if [[ ! -r "target/${WAR_NAME}" ]]; then mv target/*.war target/${WAR_NAME}; fi
+    - if [[ ! -r "target/${WAR_NAME}" ]]; then mv target/*.car target/${WAR_NAME}; fi
   environment:
     name: $ENV
   artifacts:
