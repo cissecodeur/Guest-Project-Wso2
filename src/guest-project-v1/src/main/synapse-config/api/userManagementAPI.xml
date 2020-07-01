@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/userManagement/v1" name="userManagementAPI" version="v1.0" version-type="context" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/rechercher">
+        <inSequence>
+            <log description="Full" level="full" separator="-----"/>
+            <property description="payload" expression="json-eval($)" name="payload" scope="default" type="STRING"/>
+            <log description="Custom" level="custom" separator="---------">
+                <property name="state" value="BEGIN"/>
+                <property expression="json-eval($)" name="requete_entrante"/>
+            </log>
+            <payloadFactory description="TRansformate_requete" media-type="json">
+                <format> {
+    "schemas": [
+    "urn:ietf:params:scim:api:messages:2.0:SearchRequest"
+  ],
+  "attributes": [
+    "name",
+    "userName",
+    "phoneNumbers",
+    "emails",
+    "groups"
+  ],
+  "filter": "userName eq $1",
+  "domain": "PRIMARY",
+  "startIndex": 1,
+  "count": 100
+}</format>
+                <args>
+                    <arg evaluator="json" expression="$.username"/>
+                </args>
+            </payloadFactory>
+            <log description="Custom" level="custom" separator="---------">
+                <property name="state" value="LOG_PAYLOAD"/>
+                <property expression="json-eval($)" name="reponse_payload"/>
+            </log>
+            <header name="Authorization" scope="transport" value="Basic YWRtaW46YWRtaW4="/>
+            <call>
+                <endpoint key="userManagementSearchEP"/>
+            </call>
+            <property description="Application/json" name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <log description="Custom" level="custom" separator="---------">
+                <property name="state" value="FINISH"/>
+                <property expression="json-eval($)" name="reponse_backend"/>
+            </log>
+            <respond description="response_backend"/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+</api>
