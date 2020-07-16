@@ -22,5 +22,9 @@
       </plugin>
     </plugins>
   </build>
-  <modules/>
+  <modules>
+  	<module>guest-project-v1</module>
+  	<module>guest-project-v1Registry</module>
+  	<module>guest-project-v1CompositeApplication</module>
+  </modules>
 </project>

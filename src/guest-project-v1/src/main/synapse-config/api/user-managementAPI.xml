@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/user/management/v1" name="user-managementAPI" version="1.0" version-type="context" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/searchByUsermame">
+        <inSequence>
+            <!-- stockage du payload dans une variable -->
+            <property description="payload" expression="json-eval($)" name="payload" scope="default" type="STRING"/>
+            <log level="custom" separator="------">
+                <property name="state" value="BEGIN"/>
+                <property expression="json-eval($)" name="requete_entrante"/>
+            </log>
+            <payloadFactory description="requete backend" media-type="json">
+                <format>
+					{
+					"schemas": [
+					"urn:ietf:params:scim:api:messages:2.0:SearchRequest"
+					],
+					"attributes": [
+					"name",
+					"userName",
+					"phoneNumbers",
+					"emails",
+					"groups"
+					],
+					"filter": "userName eq $1",
+					"domain": "PRIMARY",
+					"startIndex": 1,
+					"count": 100
+
+					}
+				</format>
+                <args>
+                    <arg evaluator="json" expression="$.username"/>
+                </args>
+            </payloadFactory>
+            <log level="custom" separator="------">
+                <property name="state" value="REQUEST"/>
+                <property expression="json-eval($)" name="requete_backend"/>
+            </log>
+            <header description="Authorization" name="Authorization" scope="transport" value="Basic YWRtaW46YWRtaW4="/>
+            <call>
+                <endpoint key="userManagementSearchEP"/>
+            </call>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <log level="custom" separator="------">
+                <property name="state" value="FINISH"/>
+                <property expression="json-eval($)" name="response_backend"/>
+            </log>
+            <!-- remettre la requete initiale -->
+            <payloadFactory description="requete backend" media-type="json">
+                <format>
+					$1
+				</format>
+                <args>
+                    <arg evaluator="xml" expression="$ctx:payload"/>
+                </args>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+    <resource methods="POST" uri-template="/searchByUsermameV2">
+        <inSequence>
+            <!-- stockage du payload dans une variable -->
+            <enrich description="sauvegarde du payload">
+                <source clone="false" type="body"/>
+                <target property="payload_save" type="property"/>
+            </enrich>
+            <log level="custom" separator="------">
+                <property name="state" value="BEGIN"/>
+                <property expression="json-eval($)" name="requete_entrante"/>
+            </log>
+            <payloadFactory description="requete backend" media-type="json">
+                <format>
+					{
+					"schemas": [
+					"urn:ietf:params:scim:api:messages:2.0:SearchRequest"
+					],
+					"attributes": [
+					"name",
+					"userName",
+					"phoneNumbers",
+					"emails",
+					"groups"
+					],
+					"filter": "userName eq $1",
+					"domain": "PRIMARY",
+					"startIndex": 1,
+					"count": 100
+
+					}
+				</format>
+                <args>
+                    <arg evaluator="json" expression="$.username"/>
+                </args>
+            </payloadFactory>
+            <log level="custom" separator="------">
+                <property name="state" value="REQUEST"/>
+                <property expression="json-eval($)" name="requete_backend"/>
+            </log>
+            <header description="Authorization" name="Authorization" scope="transport" value="Basic YWRtaW46YWRtaW4="/>
+            <call>
+                <endpoint key="userManagementSearchEP"/>
+            </call>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <log level="custom" separator="------">
+                <property name="state" value="FINISH"/>
+                <property expression="json-eval($)" name="response_backend"/>
+            </log>
+            <!-- remettre la requete initiale -->
+            <payloadFactory description="requete backend" media-type="json">
+                <format>
+					$1
+				</format>
+                <args>
+                    <arg evaluator="xml" expression="$ctx:payload_save"/>
+                </args>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+    <resource methods="POST" uri-template="/searchByUsermameV3">
+        <inSequence>
+            <!-- stockage du payload dans une variable -->
+            <enrich description="sauvegarde du payload">
+                <source clone="false" type="body"/>
+                <target property="payload_save" type="property"/>
+            </enrich>
+            <log level="custom" separator="------">
+                <property name="state" value="BEGIN"/>
+                <property expression="json-eval($)" name="requete_entrante"/>
+            </log>
+            <payloadFactory description="requete backend" media-type="json">
+                <format>
+					{
+					"schemas": [
+					"urn:ietf:params:scim:api:messages:2.0:SearchRequest"
+					],
+					"attributes": [
+					"name",
+					"userName",
+					"phoneNumbers",
+					"emails",
+					"groups"
+					],
+					"filter": "userName eq $1",
+					"domain": "PRIMARY",
+					"startIndex": 1,
+					"count": 100
+
+					}
+				</format>
+                <args>
+                    <arg evaluator="json" expression="$.username"/>
+                </args>
+            </payloadFactory>
+            <log level="custom" separator="------">
+                <property name="state" value="REQUEST"/>
+                <property expression="json-eval($)" name="requete_backend"/>
+            </log>
+            <header description="Authorization" name="Authorization" scope="transport" value="Basic YWRtaW46YWRtaW4="/>
+            <call>
+                <endpoint key="userManagementSearchEP"/>
+            </call>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <log level="custom" separator="------">
+                <property name="state" value="FINISH"/>
+                <property expression="json-eval($)" name="response_backend"/>
+            </log>
+            <!-- remettre la requete initiale -->
+            <enrich description="rappel du payload">
+                <source clone="false" property="payload_save" type="property"/>
+                <target type="body"/>
+            </enrich>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+    <resource methods="POST" uri-template="/searchByUsermameV4">
+        <inSequence>
+            <!-- stockage du payload dans une variable -->
+            <enrich description="sauvegarde du payload">
+                <source clone="false" type="body"/>
+                <target property="payload_save" type="property"/>
+            </enrich>
+            <log level="custom" separator="------">
+                <property name="state" value="BEGIN"/>
+                <property expression="json-eval($)" name="requete_entrante"/>
+            </log>
+            <log level="custom" separator="------">
+                <property name="state" value="FINISH"/>
+                <property expression="json-eval($)" name="response_backend"/>
+            </log>
+            <!-- remettre la requete initiale -->
+            <sequence key="backend-call-api-logic-SE"/>
+            <enrich description="rappel du payload">
+                <source clone="false" property="payload_save" type="property"/>
+                <target type="body"/>
+            </enrich>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+    <resource methods="POST" uri-template="/searchByUsermameV5">
+        <inSequence>
+            <!-- stockage du payload dans une variable -->
+            <enrich description="sauvegarde du payload">
+                <source clone="false" type="body"/>
+                <target property="payload_save" type="property"/>
+            </enrich>
+            <log level="custom" separator="------">
+                <property name="state" value="BEGIN"/>
+                <property name="enrichnumber" value="1"/>
+                <property expression="json-eval($)" name="requete_entrante"/>
+            </log>
+            <!-- remettre la requete initiale -->
+            <sequence key="backend-call-api-logic-SE"/>
+            <log level="custom" separator="------">
+                <property name="state" value="PROCESS"/>
+                <property name="enrichnumber" value="2"/>
+                <property expression="json-eval($)" name="backend_response"/>
+            </log>
+            <enrich description="sauvegarde de la response du backend">
+                <source clone="false" type="body"/>
+                <target property="bachend_respond" type="property"/>
+            </enrich>
+            <log level="custom" separator="------">
+                <property name="state" value="PROCESS"/>
+                <property name="enrichnumber" value="3"/>
+                <property expression="json-eval($)" name="backend_response"/>
+            </log>
+            <enrich description="rappel du payload">
+                <source clone="false" property="payload_save" type="property"/>
+                <target type="body"/>
+            </enrich>
+            <log level="custom" separator="------">
+                <property name="state" value="PROCESS"/>
+                <property name="enrichnumber" value="4"/>
+                <property expression="json-eval($)" name="requête"/>
+            </log>
+            <enrich description="rappel de la reponse du backend">
+                <source clone="false" property="bachend_respond" type="property"/>
+                <target type="body"/>
+            </enrich>
+            <log level="custom" separator="------">
+                <property name="state" value="FINISH"/>
+                <property name="enrichnumber" value="5"/>
+                <property expression="json-eval($)" name="response_backend"/>
+            </log>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+    <resource methods="POST" uri-template="/searchByUsermameV6">
+        <inSequence>
+            <!-- stockage du payload dans une variable -->
+            <script description="pyaload verfication script" language="js"><![CDATA[var log = mc.getServiceLog();
+log.info(" ---- begin script ---- ");
+payload = mc.getPayloadJSON();
+
+log.info(payload);
+log.info(" ---- end script ---- ");]]></script>
+            <enrich description="sauvegarde du payload">
+                <source clone="false" type="body"/>
+                <target property="payload_save" type="property"/>
+            </enrich>
+            <log level="custom" separator="------">
+                <property name="state" value="BEGIN"/>
+                <property expression="json-eval($)" name="requete_entrante"/>
+            </log>
+            <log level="custom" separator="------">
+                <property name="state" value="FINISH"/>
+                <property expression="json-eval($)" name="response_backend"/>
+            </log>
+            <!-- remettre la requete initiale -->
+            <sequence key="backend-call-api-logic-SE"/>
+            <enrich description="rappel du payload">
+                <source clone="false" property="payload_save" type="property"/>
+                <target type="body"/>
+            </enrich>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+</api>

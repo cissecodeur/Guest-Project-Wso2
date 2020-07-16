@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="backend-call-api-logic-SE" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+    <payloadFactory description="requete backend" media-type="json">
+        <format>
+					{
+					"schemas": [
+					"urn:ietf:params:scim:api:messages:2.0:SearchRequest"
+					],
+					"attributes": [
+					"name",
+					"userName",
+					"phoneNumbers",
+					"emails",
+					"groups"
+					],
+					"filter": "userName eq $1",
+					"domain": "PRIMARY",
+					"startIndex": 1,
+					"count": 100
+
+					}
+				</format>
+        <args>
+            <arg evaluator="json" expression="$.username"/>
+        </args>
+    </payloadFactory>
+    <log level="custom" separator="------">
+        <property name="state" value="REQUEST"/>
+        <property expression="json-eval($)" name="requete_backend"/>
+    </log>
+    <header description="Authorization" name="Authorization" scope="transport" value="Basic YWRtaW46YWRtaW4="/>
+    <call>
+        <endpoint key="userManagementSearchEP"/>
+    </call>
+    <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+</sequence>
