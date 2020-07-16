@@ -288,4 +288,175 @@ log.info(" ---- end script ---- ");]]></script>
         <outSequence/>
         <faultSequence/>
     </resource>
+    <resource methods="POST" uri-template="/searchByUsermameV7">
+        <inSequence>
+            <property expression="json-eval($.matricule)" name="matricule" scope="default" type="STRING"/>
+            <log level="custom" separator="------">
+                <property name="state" value="BEGIN"/>
+                <property expression="json-eval($)" name="requete_entrante"/>
+                <property expression="json-eval($.matricule)" name="matriculeUtilisateur"/>
+            </log>
+            <dblookup>
+                <connection>
+                    <pool>
+                        <driver>com.mysql.jdbc.Driver</driver>
+                        <url>jdbc:mysql://localhost:3306/WSO2GUEST_DB</url>
+                        <user>cisse</user>
+                        <password>root123</password>
+                    </pool>
+                </connection>
+                <statement>
+                    <sql><![CDATA[SELECT  customerName , city FROM customers WHERE customerNumber=?]]></sql>
+                    <parameter expression="$ctx:matricule" type="VARCHAR"/>
+                    <result column="city" name="ville"/>
+                    <result column="customerName" name="nom"/>
+                </statement>
+            </dblookup>
+            <log level="custom" separator="------">
+                <property name="state" value="RESULT QUERY"/>
+                <property expression="//." name="PAYLOAD"/>
+                <property expression="$ctx:nom" name="nom"/>
+                <property expression="$ctx:ville" name="ville"/>
+            </log>
+            <payloadFactory description="ResultResponse" media-type="json">
+                <format>
+					{
+					"hasError": false,
+					"items": [
+					{
+					"nom": "$1",
+					"ville": "$2"
+					}
+					],
+					"status" :{
+					"code" : 200,
+					"message" : "Vous avez ete recuperé(e) Mr/Mme $1 , dans la ville $2 ."
+
+					}
+					}
+				</format>
+                <args>
+                    <arg evaluator="xml" expression="$ctx:nom"/>
+                    <arg evaluator="xml" expression="$ctx:ville"/>
+                </args>
+            </payloadFactory>
+            <respond description="Reponse"/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+    <resource methods="POST" uri-template="/insertEmployee">
+        <inSequence>
+            <propertyGroup>
+                <property expression="json-eval($.matricule)" name="matricule" scope="default" type="INTEGER"/>
+                <property expression="json-eval($.nom)" name="nom" scope="default" type="STRING"/>
+                <property expression="json-eval($.prenoms)" name="prenoms" scope="default" type="STRING"/>
+                <property expression="json-eval($.extension)" name="extension" scope="default" type="STRING"/>
+                <property expression="json-eval($.email)" name="email" scope="default" type="STRING"/>
+                <property expression="json-eval($.code)" name="code" scope="default" type="STRING"/>
+                <property expression="json-eval($.report)" name="report" scope="default" type="INTEGER"/>
+                <property expression="json-eval($.poste)" name="poste" scope="default" type="STRING"/>
+            </propertyGroup>
+            <log level="custom" separator="------">
+                <property name="state" value="BEGIN"/>
+                <property expression="json-eval($)" name="requete_entrante"/>
+                <property expression="json-eval($.matricule)" name="matriculeUtilisateur"/>
+            </log>
+            <dbreport>
+                <connection>
+                    <pool>
+                        <driver>com.mysql.jdbc.Driver</driver>
+                        <url>jdbc:mysql://localhost:3306/ WSO2GUEST_DB</url>
+                        <user>cisse</user>
+                        <password>root123</password>
+                    </pool>
+                </connection>
+                <statement>
+                    <sql><![CDATA[INSERT INTO  employees (employeeNumber,lastName,firstName,extension,email,officeCode,reportsTo,jobTitle ) VALUES (?,?,?,?,?,?,?,?)]]></sql>
+                    <parameter expression="$ctx:matricule" type="INTEGER"/>
+                    <parameter expression="$ctx:nom" type="VARCHAR"/>
+                    <parameter expression="$ctx:prenoms" type="VARCHAR"/>
+                    <parameter expression="$ctx:extension" type="VARCHAR"/>
+                    <parameter expression="$ctx:email" type="VARCHAR"/>
+                    <parameter expression="$ctx:code" type="VARCHAR"/>
+                    <parameter expression="$ctx:report" type="INTEGER"/>
+                    <parameter expression="$ctx:poste" type="VARCHAR"/>
+                </statement>
+            </dbreport>
+            <dblookup>
+                <connection>
+                    <pool>
+                        <driver>com.mysql.jdbc.Driver</driver>
+                        <url>jdbc:mysql://localhost:3306/WSO2GUEST_DB</url>
+                        <user>cisse</user>
+                        <password>root123</password>
+                    </pool>
+                </connection>
+                <statement>
+                    <sql><![CDATA[SELECT  lastName , firstName , email , jobTitle FROM employees WHERE employeeNumber=?]]></sql>
+                    <parameter expression="$ctx:matricule" type="INTEGER"/>
+                    <result column="email" name="emailReturn"/>
+                    <result column="jobTitle" name="posteReturn"/>
+                    <result column="city" name="ville"/>
+                    <result column="lastName" name="nomReturn"/>
+                    <result column="firstName" name="prenomsReturn"/>
+                </statement>
+            </dblookup>
+            <switch source="$ctx:nomReturn">
+                <case regex="">
+                    <payloadFactory description="ResultResponse" media-type="json">
+                        <format>
+							{
+							"hasError": true,
+							"status" :{
+							"code" : 900,
+							"message" : "Votre inscription a echouée Mr/Mme $1 $2 ."
+
+							    }
+							}
+						</format>
+                        <args>
+                            <arg evaluator="xml" expression="$ctx:nom"/>
+                            <arg evaluator="xml" expression="$ctx:prenoms"/>
+                        </args>
+                    </payloadFactory>
+                </case>
+                <default>
+                    <payloadFactory description="ResultResponse" media-type="json">
+                        <format>
+							{
+							"hasError": false,
+							"items": [
+							{
+							"nom": "$1",
+							"prenoms": "$2",
+							"email"  : "$3",
+							"poste"  : "$4"
+							}
+							],
+							"status" :{
+							"code" : 200,
+							"message" : "Votre inscription  a ete effectuée  avec succes Mr/Mme $1 $2 ."
+
+							}
+							}
+						</format>
+                        <args>
+                            <arg evaluator="xml" expression="$ctx:nom"/>
+                            <arg evaluator="xml" expression="$ctx:prenoms"/>
+                        </args>
+                    </payloadFactory>
+                </default>
+            </switch>
+            <log level="custom" separator="------">
+                <property name="state" value="RESULT QUERY"/>
+                <property expression="//." name="PAYLOAD"/>
+                <property expression="$ctx:nom" name="nom"/>
+                <property expression="$ctx:prenoms" name="prenoms"/>
+            </log>
+            <respond description="Reponse"/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
 </api>
