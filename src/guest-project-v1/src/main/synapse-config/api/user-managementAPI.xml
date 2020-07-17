@@ -361,12 +361,13 @@ log.info(" ---- end script ---- ");]]></script>
                 <property name="state" value="BEGIN"/>
                 <property expression="json-eval($)" name="requete_entrante"/>
                 <property expression="json-eval($.matricule)" name="matriculeUtilisateur"/>
+                <property expression="$ctx:poste" name="poste"/>
             </log>
             <dbreport>
                 <connection>
                     <pool>
                         <driver>com.mysql.jdbc.Driver</driver>
-                        <url>jdbc:mysql://localhost:3306/ WSO2GUEST_DB</url>
+                        <url>jdbc:mysql://localhost:3306/WSO2GUEST_DB</url>
                         <user>cisse</user>
                         <password>root123</password>
                     </pool>
@@ -397,7 +398,6 @@ log.info(" ---- end script ---- ");]]></script>
                     <parameter expression="$ctx:matricule" type="INTEGER"/>
                     <result column="email" name="emailReturn"/>
                     <result column="jobTitle" name="posteReturn"/>
-                    <result column="city" name="ville"/>
                     <result column="lastName" name="nomReturn"/>
                     <result column="firstName" name="prenomsReturn"/>
                 </statement>
@@ -428,7 +428,7 @@ log.info(" ---- end script ---- ");]]></script>
 							"hasError": false,
 							"items": [
 							{
-							"nom": "$1",
+							"nom"    : "$1",
 							"prenoms": "$2",
 							"email"  : "$3",
 							"poste"  : "$4"
@@ -442,8 +442,10 @@ log.info(" ---- end script ---- ");]]></script>
 							}
 						</format>
                         <args>
-                            <arg evaluator="xml" expression="$ctx:nom"/>
-                            <arg evaluator="xml" expression="$ctx:prenoms"/>
+                            <arg evaluator="xml" expression="$ctx:nomReturn"/>
+                            <arg evaluator="xml" expression="$ctx:prenomsReturn"/>
+                            <arg evaluator="xml" expression="$ctx:emailReturn"/>
+                            <arg evaluator="xml" expression="$ctx:posteReturn"/>
                         </args>
                     </payloadFactory>
                 </default>
@@ -458,5 +460,140 @@ log.info(" ---- end script ---- ");]]></script>
         </inSequence>
         <outSequence/>
         <faultSequence/>
+    </resource>
+    <resource methods="POST" uri-template="/insertPayment">
+        <inSequence>
+            <propertyGroup>
+                <property expression="json-eval($.matricule)" name="matricule" scope="default" type="INTEGER"/>
+                <property expression="json-eval($.codeVerification)" name="codeVerification" scope="default" type="STRING"/>
+                <property expression="json-eval($.date)" name="date" scope="default" type="STRING"/>
+                <property expression="json-eval($.montant)" name="montant" scope="default" type="DOUBLE"/>
+                <property expression="json-eval($.statut)" name="statut" scope="default" type="STRING"/>
+            </propertyGroup>
+            <log level="custom" separator="------">
+                <property name="state" value="BEGIN"/>
+                <property expression="json-eval($)" name="requete_entrante"/>
+                <property expression="json-eval($.matricule)" name="matriculeUtilisateur"/>
+                <property expression="$ctx:statut" name="statut"/>
+            </log>
+            <dbreport>
+                <connection>
+                    <pool>
+                        <driver>com.mysql.jdbc.Driver</driver>
+                        <url>jdbc:mysql://localhost:3306/WSO2GUEST_DB</url>
+                        <user>cisse</user>
+                        <password>root123</password>
+                    </pool>
+                </connection>
+                <statement>
+                    <sql><![CDATA[INSERT INTO  payments (customerNumber,checkNumber,paymentDate,amount,status) VALUES (?,?,?,?,?)]]></sql>
+                    <parameter expression="$ctx:matricule" type="INTEGER"/>
+                    <parameter expression="$ctx:codeVerification" type="VARCHAR"/>
+                    <parameter expression="$ctx:date" type="VARCHAR"/>
+                    <parameter expression="$ctx:montant" type="VARCHAR"/>
+                    <parameter expression="$ctx:statut" type="VARCHAR"/>
+                </statement>
+            </dbreport>
+            <dblookup>
+                <connection>
+                    <pool>
+                        <driver>com.mysql.jdbc.Driver</driver>
+                        <url>jdbc:mysql://localhost:3306/WSO2GUEST_DB</url>
+                        <user>cisse</user>
+                        <password>root123</password>
+                    </pool>
+                </connection>
+                <statement>
+                    <sql><![CDATA[SELECT  paymentDate , amount , status  FROM payments WHERE customerNumber=?]]></sql>
+                    <parameter expression="$ctx:matricule" type="INTEGER"/>
+                    <result column="status" name="statutReturn"/>
+                    <result column="paymentDate" name="dateReturn"/>
+                    <result column="amount" name="montantReturn"/>
+                </statement>
+            </dblookup>
+            <switch source="$ctx:montantReturn">
+                <case regex="">
+                    <payloadFactory description="ResultResponse" media-type="json">
+                        <format>
+							{
+							"hasError": true,
+							"status" :{
+							"code" : 400,
+							"message" : "Votre paiement de $1 a echouée a la date $2 ."
+
+							    }
+							}
+						</format>
+                        <args>
+                            <arg evaluator="xml" expression="$ctx:montant"/>
+                            <arg evaluator="xml" expression="$ctx:date"/>
+                        </args>
+                    </payloadFactory>
+                </case>
+                <default>
+                    <payloadFactory description="ResultResponse" media-type="json">
+                        <format>
+							{
+							"hasError": false,
+							"items": [
+							{
+							"code"    : "$1",
+							"date"    : "$2",
+							"montant" : "$3",
+							"statut"  : "$4"
+							}
+							],
+							"status" :{
+							"code" : 200,
+							"message" : "Votre payment de $3 a ete effectuée avec succes , votre code de paiement est $1 ."
+
+							}
+							}
+						</format>
+                        <args>
+                            <arg evaluator="xml" expression="$ctx:codeReturn"/>
+                            <arg evaluator="xml" expression="$ctx:dateReturn"/>
+                            <arg evaluator="xml" expression="$ctx:montantReturn"/>
+                            <arg evaluator="xml" expression="$ctx:statutReturn"/>
+                        </args>
+                    </payloadFactory>
+                </default>
+            </switch>
+            <log level="custom" separator="------">
+                <property name="state" value="RESULT QUERY"/>
+                <property expression="//." name="PAYLOAD"/>
+                <property expression="$ctx:montant" name="montant"/>
+                <property expression="$ctx:date" name="date"/>
+            </log>
+            <respond description="Reponse"/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence>
+            <payloadFactory description="ErrorHandler" media-type="json">
+                <format>
+							{
+							"hasError": true,
+							"status" :{
+							"code" : 400,
+							"codeProcess" : $3,
+							"message" : "Votre paymentde $1 a echouée a la date $2 ."
+							"messageProcess" : "$4",
+							"messageDetailsProcess" : "$5"
+
+							    }
+							}
+						</format>
+                <args>
+                    <arg evaluator="xml" expression="$ctx:montant"/>
+                    <arg evaluator="xml" expression="$ctx:date"/>
+                    <arg evaluator="xml" expression="$ctx:ERROR_CODE"/>
+                    <arg evaluator="xml" expression="$ctx:ERROR_MESSAGE"/>
+                    <arg evaluator="xml" expression="$ctx:ERROR_DETAIL"/>
+                </args>
+            </payloadFactory>
+            <property description="application/json" name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <property description="Code erreur HTTP" name="HTTP_SC" scope="axis2" type="STRING" value="400"/>
+            <respond/>
+        </faultSequence>
     </resource>
 </api>
