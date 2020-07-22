@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="local-verification-required-json-field-SE" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+    <log level="custom" separator="-----">
+        <property expression="json-eval($)" name="avant verification"/>
+    </log>
+    <enrich>
+        <source clone="true" type="body"/>
+        <target property="payload" type="property"/>
+    </enrich>
+    <script language="js"><![CDATA[var log = mc.getServiceLog(); 
+    log.info("»——— begin verification script required field in request ———«");
+    
+    var paylaod = mc.getPayloadJSON();
+    log.info("payload : "+paylaod);
+    
+    var requiredsFieldsProperty = mc.getProperty("requiredsFieldsProperty");
+    var requiredsFieldsTab = requiredsFieldsProperty.split(",");
+    
+    var hasError = false;
+    var requirefield = "";
+
+    for(var field in requiredsFieldsTab){
+       if ((requiredsFieldsTab[field] in paylaod)==false)
+		  {
+			 hasError = true;
+			 requirefield = requiredsFieldsTab[field];
+		  }
+    }
+    var response = { hasError: hasError };
+    log.info("-- set response var : ");
+    if(hasError){
+       message = "Champ requis absent dans la requête ==> "+ requirefield ;
+       response = { hasError: hasError, status : { code: 400 , message: message } };
+       log.info("-- required field not given in payload request  ");
+    }
+    log.info("final response: "+response);
+    log.info("»——— end verification script required field in request ———«");
+    mc.setPayloadJSON(response);]]></script>
+    <log level="custom" separator="----">
+        <property expression="json-eval($)" name="apres verification"/>
+    </log>
+    <switch source="json-eval($.hasError)">
+        <case regex="true">
+            <property expression="json-eval($)" name="DATA" scope="default" type="STRING"/>
+            <log level="custom" separator="----">
+                <property expression="json-eval($)" name="payload"/>
+            </log>
+            <respond/>
+        </case>
+        <default>
+            <enrich>
+                <source clone="false" property="payload" type="property"/>
+                <target type="body"/>
+            </enrich>
+            <log level="custom" separator="-----">
+                <property expression="json-eval($)" name="restauration variable"/>
+            </log>
+        </default>
+    </switch>
+</sequence>

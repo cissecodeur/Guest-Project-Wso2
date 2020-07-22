@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<endpoint name="userManagementSearchEP" xmlns="http://ws.apache.org/ns/synapse">
-    <http method="post" uri-template="https://portail-auth.clients.smile.ci/scim2/Users/.search">
+<endpoint name="insert_customers_EP" xmlns="http://ws.apache.org/ns/synapse">
+    <http method="post" uri-template="http://127.0.0.1:8280/services/Guest_DataService.SOAP12Endpoint/insert_customers_operation">
         <timeout>
             <duration>2000</duration>
             <responseAction>fault</responseAction>
         </timeout>
         <suspendOnFailure>
             <initialDuration>-1</initialDuration>
-            <progressionFactor>1</progressionFactor>
+            <progressionFactor>1.0</progressionFactor>
         </suspendOnFailure>
         <markForSuspension>
             <retriesBeforeSuspension>0</retriesBeforeSuspension>
